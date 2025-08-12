@@ -1,44 +1,27 @@
-- name: install apache and php for Ubuntu servers
-  tags: apache,apache2,ubuntu
-  apt:
+- name: install apache and php packages
+  tags: apache,httpd,php
+  package:
     name:
-      - apache2
-      - libapache2-mod-php
+      - "{{ apache_package_name }}"
+      - "{{ php_package_name }}"
     state: latest
-  when: ansible_distribution == "Ubuntu"
 
-- name: install apache and php for CentOS servers
-  tags: apache,apache2,httpd
-  dnf:
-    name:
-      - httpd
-      - php
-    state: latest
-  when: ansible_distribution == "CentOS"
-
-- name: start apache2 (Ubuntu)
+- name: start and enable apache service
   tags: apache,apache2,ubuntu
   service:
-    name: apache2
+    name: "{{ apache_service }}"
     state: started
     enabled: yes
-  when: ansible_distribution == "Ubuntu"
 
 - name: change MaxKeepAliveRequests in configuration file of apache2
   tags: apache,centos,httpd
   lineinfile:
     path: /etc/apache2/apache2.conf
     regexp: '^MaxKeepAliveRequests'
-    line: MaxKeepAliveRequests 102
+    line: MaxKeepAliveRequests 103
   when: ansible_distribution == "Ubuntu"
-  register: apache2
+  notify: restart_apache
 
-- name: restart apache2 (Ubuntu)
-  tags: apache,apache2,ubuntu
-  service:
-    name: apache2
-    state: restarted
-  when: apache2.changed
 
 - name: copy default html file for site
   tags: apache,apache2,httpd
